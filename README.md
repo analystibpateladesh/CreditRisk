@@ -1,6 +1,6 @@
-# CreditRisk Pro — Institutional Credit Risk Analytics Platform
+# CreditRisk Pro: Institutional Credit Risk Analytics Platform
 
-> A full-stack, browser-based credit risk workbench built to institutional standards — implementing Basel III/IV-aligned quantitative models, AI-powered portfolio commentary, and an end-to-end analyst workflow across scoring, rating, PD/LGD/EAD, Monte Carlo simulation, concentration risk, and explainability.
+> A full-stack, browser-based credit risk workbench built to institutional standards - implementing Basel III/IV-aligned quantitative models, AI-powered portfolio commentary, and an end-to-end analyst workflow across scoring, rating, PD/LGD/EAD, Monte Carlo simulation, concentration risk, and explainability.
 
 **Stack:** React 19 · TypeScript · TanStack Start · TanStack Query · Tailwind CSS v4 · Radix UI · Supabase · Recharts · Zod · Vite
 
@@ -17,7 +17,7 @@ Today, most mid-sized financial institutions rely on:
 - Black-box scoring models with no explainability for regulators or credit committees
 - Manual, time-consuming processes to compute VaR, EL, and concentration risk across a portfolio
 
-**CreditRisk Pro solves this** by delivering a unified, interactive risk workbench that a credit analyst, risk manager, or CRO can use to assess any portfolio in real time — from individual borrower scoring all the way to Monte Carlo-based capital estimation.
+**CreditRisk Pro solves this** by delivering a unified, interactive risk workbench that a credit analyst, risk manager, or CRO can use to assess any portfolio in real time - from individual borrower scoring all the way to Monte Carlo-based capital estimation.
 
 ---
 
@@ -45,7 +45,7 @@ The landing dashboard gives a CRO-level snapshot of the entire portfolio:
 - Synthetic 12-month EL trend chart
 
 ### Credit Scoring Engine (0–1000)
-An 8-factor weighted internal scoring model — analogous to models used at large commercial banks:
+An 8-factor weighted internal scoring model - analogous to models used at large commercial banks:
 
 | Factor | Weight | Signal |
 |---|---|---|
@@ -58,11 +58,11 @@ An 8-factor weighted internal scoring model — analogous to models used at larg
 | Liquidity (Current Ratio) | 8% | Short-term buffer |
 | Account Tenure | 6% | Relationship depth |
 
-Analysts can interactively re-weight factors and instantly see how the portfolio score distribution shifts — enabling what-if analysis for model governance and validation.
+Analysts can interactively re-weight factors and instantly see how the portfolio score distribution shifts - enabling what-if analysis for model governance and validation.
 
-### Probability of Default (PD) — TTC vs. PIT
+### Probability of Default (PD) - TTC vs. PIT
 - **Through-the-Cycle (TTC) PD:** Grade-anchored long-run average, S&P-calibrated (e.g. BBB = 0.35%, B = 4.5%)
-- **Point-in-Time (PIT) PD:** Borrower-specific logistic PD tilted by a macro index (−1 expansion → +1 recession) using an exponential tilt factor — so a recession doubles PDs, expansion halves them
+- **Point-in-Time (PIT) PD:** Borrower-specific logistic PD tilted by a macro index (−1 expansion → +1 recession) using an exponential tilt factor - so a recession doubles PDs, expansion halves them
 - **PIT/TTC Ratio** as an early-warning signal: divergence flags borrowers whose current risk has deviated significantly from their grade anchor
 - **S&P-style 10-grade Rating Migration Matrix** (AAA → D) with Markov chain multi-year projection and stress scenario overlays
 
@@ -74,13 +74,13 @@ Collateral-adjusted recovery model following Basel LGD logic:
 
 ### Exposure at Default (EAD)
 - Term loans and bonds: EAD = committed exposure
-- Revolving facilities: EAD = drawn + Credit Conversion Factor (50%) × undrawn portion — consistent with Basel CCF methodology
+- Revolving facilities: EAD = drawn + Credit Conversion Factor (50%) × undrawn portion - consistent with Basel CCF methodology
 
 ### Expected Loss & Monte Carlo Simulation
 **Analytic EL:** EL = PD × LGD × EAD computed per borrower and aggregated across the portfolio.
 
 **Monte Carlo Engine (up to 10,000 trials):**
-- One-factor Gaussian copula model with configurable asset correlation (ρ) — the same structure underlying the Basel IRB capital formula
+- One-factor Gaussian copula model with configurable asset correlation (ρ) - the same structure underlying the Basel IRB capital formula
 - Stochastic LGD with configurable volatility
 - Macro index shock to PIT PDs before simulation
 - Outputs: VaR at 95%, 99%, 99.9% confidence levels; Expected Shortfall (ES) at 97.5% and 99%; full loss distribution histogram; worst tail contributors by name
@@ -100,8 +100,8 @@ This directly maps to **ICAAP capital estimation** requirements under Basel Pill
 - Investment / Speculative / Distressed band segmentation
 
 ### Explainable AI (SHAP-style Attribution)
-- **Local explainability:** For any individual borrower, waterfall chart showing the signed contribution of each of the 8 score factors relative to a baseline — equivalent to SHAP values
-- **Global explainability:** Portfolio-wide factor importance ranking — which drivers are most responsible for overall portfolio credit risk
+- **Local explainability:** For any individual borrower, waterfall chart showing the signed contribution of each of the 8 score factors relative to a baseline - equivalent to SHAP values
+- **Global explainability:** Portfolio-wide factor importance ranking - which drivers are most responsible for overall portfolio credit risk
 - **Driver Impact Drill-down:** For any selected driver (e.g. "Leverage"), rank all borrowers by their contribution to that driver
 - This directly addresses **SR 11-7 / model explainability** requirements that regulators impose on banks using internal scoring models
 
@@ -114,12 +114,12 @@ Algorithmic triggers flagging at-risk borrowers before formal default:
 - Severity ranking: Critical / High / Medium with color-coded alerts
 
 ### Borrower Profiles
-Full per-borrower drill-through: financial ratios, behavioral metrics, facility details (type, seniority, tenor, collateral), scoring breakdown, risk grade, EL contribution, and SHAP attribution — everything a relationship manager needs for credit committee presentation.
+Full per-borrower drill-through: financial ratios, behavioral metrics, facility details (type, seniority, tenor, collateral), scoring breakdown, risk grade, EL contribution, and SHAP attribution - everything a relationship manager needs for credit committee presentation.
 
 ### AI Analyst (Claude-powered)
 - Floating chat interface backed by Claude AI with full portfolio context injected (total exposure, EL, sector breakdown, grade band distribution, top-5 riskiest borrowers)
 - Pre-built prompts: "Summarize the biggest risks", "Which sectors are over-concentrated?", "Recommend 3 actions to reduce expected loss"
-- Natural language Q&A over live portfolio data — no SQL, no pivot tables
+- Natural language Q&A over live portfolio data - no SQL, no pivot tables
 
 ---
 
@@ -197,14 +197,14 @@ bun run dev
 
 CreditRisk Pro implements concepts directly relevant to:
 
-- **Basel II/III/IV (BCBS)** — IRB PD/LGD/EAD/EL framework, capital adequacy
-- **IFRS 9** — Point-in-Time PD for expected credit loss provisioning
-- **RBI Master Directions (India)** — NBFC and bank credit risk management guidelines
-- **SR 11-7 (Federal Reserve)** — Model risk management and explainability requirements
-- **ICAAP / Pillar 2** — Internal capital adequacy using scenario-based loss models
+- **Basel II/III/IV (BCBS)** - IRB PD/LGD/EAD/EL framework, capital adequacy
+- **IFRS 9** - Point-in-Time PD for expected credit loss provisioning
+- **RBI Master Directions (India)** - NBFC and bank credit risk management guidelines
+- **SR 11-7 (Federal Reserve)** - Model risk management and explainability requirements
+- **ICAAP / Pillar 2** - Internal capital adequacy using scenario-based loss models
 
 ---
 
 ## License
 
-MIT — built for learning, portfolio demonstration, and as a foundation for production credit risk tooling.
+MIT - built for learning, portfolio demonstration, and as a foundation for production credit risk tooling.
