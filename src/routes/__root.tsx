@@ -6,7 +6,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
-import { reportLovableError } from "../lib/lovable-error-reporting";
+import { reportLovableError } from "../lib/error-reporting";
 import { AppSidebar } from "@/components/app-sidebar";
 import { AiAnalystBubble } from "@/components/ai-analyst-bubble";
 import { PortfolioProvider } from "@/lib/portfolio-context";

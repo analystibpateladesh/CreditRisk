@@ -2,19 +2,10 @@
 // Formulas are simplified but follow institutional logic
 // (logistic PD, Basel-style LGD/EAD/EL, weighted internal score).
 
-export type Sector =
-  | "Manufacturing"
-  | "Technology"
-  | "Retail"
-  | "Real Estate"
-  | "Energy"
-  | "Healthcare"
-  | "Financials"
-  | "Agriculture"
-  | "Transport"
-  | "Construction";
-
-export type Region = "North America" | "EMEA" | "APAC" | "LATAM";
+// Sector, Region, seniority, facilityType are plain strings —
+// all values come directly from the uploaded sheet, nothing is hardcoded.
+export type Sector = string;
+export type Region = string;
 
 export interface BorrowerFinancials {
   annualRevenue: number;        // USD
@@ -30,27 +21,27 @@ export interface BorrowerFinancials {
 }
 
 export interface BorrowerBehavior {
-  utilizationPct: number;            // 0-100, revolving utilization
-  daysPastDue30Last12m: number;      // count
-  daysPastDue90Last24m: number;      // count
+  utilizationPct: number;       // 0-100
+  daysPastDue30Last12m: number;
+  daysPastDue90Last24m: number;
   inquiriesLast6m: number;
   accountAgeYears: number;
-  bureauScore: number;               // 300-850 external bureau
+  bureauScore: number;          // 300-850
 }
 
 export interface Borrower {
   id: string;
   legalName: string;
   ticker?: string;
-  sector: Sector;
-  region: Region;
+  sector: string;               // taken as-is from sheet
+  region: string;               // taken as-is from sheet
   country: string;
   rmOwner: string;
   onboardedAt: string;
-  exposure: number;                  // EAD, USD
-  collateralValue: number;           // USD
-  seniority: "Senior Secured" | "Senior Unsecured" | "Subordinated";
-  facilityType: "Term Loan" | "Revolver" | "Bond" | "Trade Finance";
+  exposure: number;             // EAD, USD
+  collateralValue: number;      // USD
+  seniority: string;            // taken as-is from sheet (e.g. "Senior", "Mid-Level", "Junior")
+  facilityType: string;         // taken as-is from sheet (e.g. "Term Loan", "Revolving Credit Line")
   tenorMonths: number;
   financials: BorrowerFinancials;
   behavior: BorrowerBehavior;
@@ -70,24 +61,22 @@ export const ratios = (f: BorrowerFinancials) => {
 };
 
 // ---------- Internal Credit Score (0-1000) ----------
-// Weighted blend of financial strength, behavior, and bureau anchor.
 export const scoreComponents = (b: Borrower) => {
   const r = ratios(b.financials);
   const bh = b.behavior;
 
   const clamp = (x: number, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, x));
 
-  // Sub-scores 0-100
-  const leverage = clamp(100 - r.debtToEbitda * 12);                      // lower D/E better
-  const coverage = clamp(r.interestCoverage * 8);                          // higher better
-  const liquidity = clamp(r.currentRatio * 35);                            // ~1.5 -> 52
+  const leverage      = clamp(100 - r.debtToEbitda * 12);
+  const coverage      = clamp(r.interestCoverage * 8);
+  const liquidity     = clamp(r.currentRatio * 35);
   const profitability = clamp(50 + r.ebitdaMargin * 200 + r.roa * 150);
-  const solvency = clamp(20 + r.equityRatio * 120);
+  const solvency      = clamp(20 + r.equityRatio * 120);
   const behaviorScore = clamp(
     100 - bh.utilizationPct * 0.6 - bh.daysPastDue30Last12m * 6 - bh.daysPastDue90Last24m * 12 - bh.inquiriesLast6m * 2
   );
-  const bureau = clamp(((bh.bureauScore - 300) / 550) * 100);
-  const tenure = clamp(bh.accountAgeYears * 6);
+  const bureau  = clamp(((bh.bureauScore - 300) / 550) * 100);
+  const tenure  = clamp(bh.accountAgeYears * 6);
 
   const weights = {
     leverage: 0.16, coverage: 0.14, liquidity: 0.08, profitability: 0.14,
@@ -112,7 +101,7 @@ export const scoreComponents = (b: Borrower) => {
   };
 };
 
-// ---------- Risk Rating (institutional grades) ----------
+// ---------- Risk Rating ----------
 export type Grade = "AAA" | "AA" | "A" | "BBB" | "BB" | "B" | "CCC" | "CC" | "C" | "D";
 
 export const gradeFromScore = (score: number): Grade => {
@@ -134,17 +123,15 @@ export const gradeBand = (g: Grade): "Investment" | "Speculative" | "Distressed"
   return "Distressed";
 };
 
-// 1-year PD anchors by grade (S&P-style approximation)
 export const pdByGrade: Record<Grade, number> = {
   AAA: 0.0002, AA: 0.0005, A: 0.0012, BBB: 0.0035,
   BB: 0.012, B: 0.045, CCC: 0.135, CC: 0.245, C: 0.35, D: 1.0,
 };
 
-// ---------- PD model (logistic, calibrated to grade anchor) ----------
+// ---------- PD model ----------
 export const probabilityOfDefault = (b: Borrower) => {
   const { score } = scoreComponents(b);
   const grade = gradeFromScore(score);
-  // logistic shape around score, blended with grade anchor for stability
   const z = (700 - score) / 80;
   const logistic = 1 / (1 + Math.exp(-z));
   const anchor = pdByGrade[grade];
@@ -153,25 +140,29 @@ export const probabilityOfDefault = (b: Borrower) => {
 };
 
 // ---------- LGD model ----------
-// LGD = max(0, 1 - recovery). Recovery = collateral coverage * haircut + seniority adjustment.
+// Seniority values come from sheet. We do a case-insensitive check so
+// "Senior", "senior", "SENIOR" all work. Falls back to mid-range if unrecognised.
 export const lossGivenDefault = (b: Borrower) => {
   const exposure = Math.max(1, b.exposure);
   const coverage = Math.min(1.2, b.collateralValue / exposure);
+  const s = b.seniority?.toLowerCase() ?? "";
   const haircut =
-    b.seniority === "Senior Secured" ? 0.85 :
-    b.seniority === "Senior Unsecured" ? 0.55 : 0.30;
+    s.includes("senior") ? 0.85 :
+    s.includes("mid")    ? 0.55 : 0.30;   // junior / subordinated / anything else
   const recoveryFromCollat = coverage * haircut;
   const seniorityFloor =
-    b.seniority === "Senior Secured" ? 0.20 :
-    b.seniority === "Senior Unsecured" ? 0.40 : 0.65;
+    s.includes("senior") ? 0.20 :
+    s.includes("mid")    ? 0.40 : 0.65;
   const lgd = Math.min(0.95, Math.max(0.05, Math.max(seniorityFloor - 0.1, 1 - recoveryFromCollat)));
   return { lgd, recovery: 1 - lgd, coverage, haircut };
 };
 
-// ---------- EAD / Expected Loss ----------
-// EAD = exposure + CCF * undrawn (approx for revolvers).
+// ---------- EAD ----------
+// Revolving / overdraft facilities get CCF on undrawn portion.
+// Everything else (term loan, working capital limit, etc.) = committed exposure.
 export const exposureAtDefault = (b: Borrower) => {
-  if (b.facilityType === "Revolver") {
+  const f = b.facilityType?.toLowerCase() ?? "";
+  if (f.includes("revolv") || f.includes("overdraft")) {
     const ccf = 0.5;
     const undrawn = b.exposure * (1 - b.behavior.utilizationPct / 100);
     return b.exposure + ccf * undrawn;
@@ -187,19 +178,19 @@ export const expectedLoss = (b: Borrower) => {
   return { el, pd, lgd, ead, grade, score };
 };
 
-// ---------- SHAP-style attribution (deterministic stand-in) ----------
+// ---------- SHAP-style attribution ----------
 export const explainScore = (b: Borrower) => {
   const { parts, weights } = scoreComponents(b);
   const baseline = 50;
   const features: { name: string; value: number; contribution: number }[] = [
-    { name: "Bureau Score", value: parts.bureau, contribution: (parts.bureau - baseline) * weights.bureau },
-    { name: "Repayment Behavior", value: parts.behavior, contribution: (parts.behavior - baseline) * weights.behavior },
-    { name: "Leverage (Debt/EBITDA)", value: parts.leverage, contribution: (parts.leverage - baseline) * weights.leverage },
-    { name: "Profitability", value: parts.profitability, contribution: (parts.profitability - baseline) * weights.profitability },
-    { name: "Interest Coverage", value: parts.coverage, contribution: (parts.coverage - baseline) * weights.coverage },
-    { name: "Solvency (Equity Ratio)", value: parts.solvency, contribution: (parts.solvency - baseline) * weights.solvency },
-    { name: "Liquidity (Current Ratio)", value: parts.liquidity, contribution: (parts.liquidity - baseline) * weights.liquidity },
-    { name: "Account Tenure", value: parts.tenure, contribution: (parts.tenure - baseline) * weights.tenure },
+    { name: "Bureau Score",           value: parts.bureau,        contribution: (parts.bureau        - baseline) * weights.bureau },
+    { name: "Repayment Behavior",     value: parts.behavior,      contribution: (parts.behavior      - baseline) * weights.behavior },
+    { name: "Leverage (Debt/EBITDA)", value: parts.leverage,      contribution: (parts.leverage      - baseline) * weights.leverage },
+    { name: "Profitability",          value: parts.profitability, contribution: (parts.profitability - baseline) * weights.profitability },
+    { name: "Interest Coverage",      value: parts.coverage,      contribution: (parts.coverage      - baseline) * weights.coverage },
+    { name: "Solvency (Equity Ratio)",value: parts.solvency,      contribution: (parts.solvency      - baseline) * weights.solvency },
+    { name: "Liquidity (Current Ratio)",value: parts.liquidity,   contribution: (parts.liquidity     - baseline) * weights.liquidity },
+    { name: "Account Tenure",         value: parts.tenure,        contribution: (parts.tenure        - baseline) * weights.tenure },
   ];
   return features.sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution));
 };
