@@ -1,25 +1,39 @@
-# CreditRisk Pro: Institutional Credit Risk Analytics Platform
+<div align="center">
 
-> A full-stack, browser-based credit risk workbench built to institutional standards - implementing Basel III/IV-aligned quantitative models, AI-powered portfolio commentary, and an end-to-end analyst workflow across scoring, rating, PD/LGD/EAD, Monte Carlo simulation, concentration risk, and explainability.
+# CreditRisk Pro
 
-**Stack:** React 19 · TypeScript · TanStack Start · TanStack Query · Tailwind CSS v4 · Radix UI · Supabase · Recharts · Zod · Vite
+**Institutional Credit Risk Analytics Platform**
 
+*A full-stack, browser-based credit risk workbench built to institutional standards — Basel III/IV-aligned quantitative models, AI-powered portfolio commentary, and an end-to-end analyst workflow from sign-in to Monte Carlo capital estimation.*
+
+![React](https://img.shields.io/badge/React-19-149eca) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6) ![TanStack Start](https://img.shields.io/badge/TanStack-Start-ff4154) ![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20Auth-3ecf8e) ![Tailwind](https://img.shields.io/badge/Tailwind-v4-38bdf8) ![License](https://img.shields.io/badge/license-MIT-lightgrey)
+
+</div>
 
 ---
 
-## The Problem this Solves
+## Table of Contents
+
+- [The Problem This Solves](#the-problem-this-solves)
+- [Who Needs This](#who-needs-this)
+- [The Full Workflow — Sign-In to Insight](#the-full-workflow--sign-in-to-insight)
+- [Features](#features)
+- [Quantitative Models Reference](#quantitative-models-reference)
+- [Architecture](#architecture)
+- [Data Model](#data-model)
+- [Getting Started](#getting-started)
+- [Regulatory Context](#regulatory-context)
+- [License](#license)
+
+---
+
+## The Problem This Solves
 
 Every bank, NBFC, insurance company, and asset manager faces the same fundamental challenge: **how do you measure, monitor, and manage the risk that your borrowers won't repay?**
 
-Today, most mid-sized financial institutions rely on:
-- Spreadsheet-based credit models with no real-time interactivity
-- Siloed risk systems that analysts can't interrogate or stress-test
-- Black-box scoring models with no explainability for regulators or credit committees
-- Manual, time-consuming processes to compute VaR, EL, and concentration risk across a portfolio
+Most mid-sized institutions still rely on spreadsheet-based credit models with no real-time interactivity, siloed risk systems analysts can't interrogate or stress-test, black-box scoring with no explainability for regulators or credit committees, and manual, slow processes to compute VaR, EL, and concentration risk.
 
-**CreditRisk Pro solves this** by delivering a unified, interactive risk workbench that a credit analyst, risk manager, or CRO can use to assess any portfolio in real time - from individual borrower scoring all the way to Monte Carlo-based capital estimation.
-
----
+**CreditRisk Pro** replaces that with a unified, interactive risk workbench — from individual borrower scoring all the way to Monte Carlo-based capital estimation — usable by a credit analyst, risk manager, or CRO in real time.
 
 ## Who Needs This
 
@@ -35,17 +49,51 @@ Today, most mid-sized financial institutions rely on:
 
 ---
 
+## The Full Workflow — Sign-In to Insight
+
+```
+ 1. SIGN IN                2. CREATE ASSESSMENT          3. ANALYZE                        4. ASK AI
+ ─────────────            ──────────────────────        ─────────────────────            ──────────────
+ Email + password    →    Seed a synthetic portfolio →   Score → PD/LGD/EAD → EL     →     Chat with the AI
+ or Google OAuth          or upload your own CSV          → Monte Carlo → Concen-           Analyst — live
+ (Supabase Auth)          with guided column mapping      tration → Ratings →               portfolio context,
+                          (auto-detects headers)           Explainability → Early           pre-built prompts,
+                                                            Warnings → Borrower Profiles      natural-language Q&A
+```
+
+<details>
+<summary><strong>1. Sign in</strong> — email/password or Google, workspace-scoped</summary>
+
+Authentication is handled by Supabase Auth, with Google OAuth also available. Once signed in, all data is workspace-scoped and protected by Postgres Row-Level Security — every assessment and borrower record you create is visible only to you.
+</details>
+
+<details>
+<summary><strong>2. Create an assessment</strong> — seed data or bring your own CSV</summary>
+
+From **Assessments → New Assessment**, choose to either generate a realistic synthetic portfolio (configurable borrower count) or upload your own CSV. The CSV importer parses headers, auto-maps columns to the required borrower fields, flags anything missing or unmapped, and lets you review before committing. Every assessment is versioned — past runs stay in your history and can be reopened at any time.
+</details>
+
+<details>
+<summary><strong>3. Work the full analyst stack</strong> — scoring through explainability</summary>
+
+Once an assessment is active, it loads into every module: the Executive Overview dashboard, Credit Scoring Engine, PD (TTC vs. PIT), LGD, EAD, Expected Loss & Monte Carlo simulation, Concentration & Correlation Risk, Risk Rating & Segmentation, Explainability (SHAP-style attribution), Early Warning System, and individual Borrower Profiles.
+</details>
+
+<details>
+<summary><strong>4. Ask the AI Analyst</strong> — Claude-powered, portfolio-aware chat</summary>
+
+A floating chat bubble is available throughout the app, pre-loaded with live context from your active portfolio (total exposure, EL, sector breakdown, grade distribution, top-5 riskiest borrowers). Use the pre-built prompts or ask anything in natural language — no SQL, no pivot tables.
+</details>
+
+---
+
 ## Features
 
 ### Executive Risk Overview
-The landing dashboard gives a CRO-level snapshot of the entire portfolio:
-- Total Exposure (EAD), Expected Loss (12M), Average PD and LGD
-- Grade distribution (Investment / Speculative / Distressed) with EAD and EL breakdowns
-- Sector concentration heatmap and top-10 riskiest borrowers
-- Synthetic 12-month EL trend chart
+CRO-level snapshot of the entire portfolio: Total Exposure (EAD), Expected Loss (12M), Average PD and LGD, grade distribution (Investment / Speculative / Distressed) with EAD and EL breakdowns, a sector concentration heatmap, top-10 riskiest borrowers, and a synthetic 12-month EL trend chart.
 
 ### Credit Scoring Engine (0–1000)
-An 8-factor weighted internal scoring model - analogous to models used at large commercial banks:
+An 8-factor weighted internal scoring model, analogous to models used at large commercial banks:
 
 | Factor | Weight | Signal |
 |---|---|---|
@@ -58,98 +106,54 @@ An 8-factor weighted internal scoring model - analogous to models used at large 
 | Liquidity (Current Ratio) | 8% | Short-term buffer |
 | Account Tenure | 6% | Relationship depth |
 
-Analysts can interactively re-weight factors and instantly see how the portfolio score distribution shifts - enabling what-if analysis for model governance and validation.
+Analysts can interactively re-weight factors and instantly see how the portfolio score distribution shifts — enabling what-if analysis for model governance and validation.
 
-### Probability of Default (PD) - TTC vs. PIT
-- **Through-the-Cycle (TTC) PD:** Grade-anchored long-run average, S&P-calibrated (e.g. BBB = 0.35%, B = 4.5%)
-- **Point-in-Time (PIT) PD:** Borrower-specific logistic PD tilted by a macro index (−1 expansion → +1 recession) using an exponential tilt factor - so a recession doubles PDs, expansion halves them
-- **PIT/TTC Ratio** as an early-warning signal: divergence flags borrowers whose current risk has deviated significantly from their grade anchor
+### Probability of Default (PD) — TTC vs. PIT
+- **Through-the-Cycle (TTC) PD** — grade-anchored long-run average, S&P-calibrated (e.g. BBB = 0.35%, B = 4.5%)
+- **Point-in-Time (PIT) PD** — borrower-specific logistic PD tilted by a macro index (−1 expansion → +1 recession) using an exponential tilt factor, so a recession doubles PDs and an expansion halves them
+- **PIT/TTC Ratio** as an early-warning signal — divergence flags borrowers whose current risk has deviated significantly from their grade anchor
 - **S&P-style 10-grade Rating Migration Matrix** (AAA → D) with Markov chain multi-year projection and stress scenario overlays
 
 ### Loss Given Default (LGD)
-Collateral-adjusted recovery model following Basel LGD logic:
-- Recovery = collateral coverage × seniority haircut (Senior Secured: 85%, Senior Unsecured: 55%, Subordinated: 30%)
-- Seniority floors ensure minimum LGD (Senior Secured: 20%, Senior Unsecured: 40%, Subordinated: 65%)
-- LGD breakdown by seniority tier and sector with interactive bar charts
+Collateral-adjusted recovery model following Basel LGD logic — recovery = collateral coverage × seniority haircut (Senior Secured: 85%, Senior Unsecured: 55%, Subordinated: 30%), with seniority floors ensuring minimum LGD. Breakdown by seniority tier and sector with interactive bar charts.
 
 ### Exposure at Default (EAD)
-- Term loans and bonds: EAD = committed exposure
-- Revolving facilities: EAD = drawn + Credit Conversion Factor (50%) × undrawn portion - consistent with Basel CCF methodology
+Term loans and bonds use committed exposure; revolving facilities use drawn + Credit Conversion Factor (50%) × undrawn portion, consistent with Basel CCF methodology.
 
 ### Expected Loss & Monte Carlo Simulation
-**Analytic EL:** EL = PD × LGD × EAD computed per borrower and aggregated across the portfolio.
+**Analytic EL:** EL = PD × LGD × EAD, computed per borrower and aggregated across the portfolio.
 
 **Monte Carlo Engine (up to 10,000 trials):**
-- One-factor Gaussian copula model with configurable asset correlation (ρ) - the same structure underlying the Basel IRB capital formula
+- One-factor Gaussian copula model with configurable asset correlation (ρ) — the same structure underlying the Basel IRB capital formula
 - Stochastic LGD with configurable volatility
-- Macro index shock to PIT PDs before simulation
-- Outputs: VaR at 95%, 99%, 99.9% confidence levels; Expected Shortfall (ES) at 97.5% and 99%; full loss distribution histogram; worst tail contributors by name
+- Macro index shock applied to PIT PDs before simulation
+- Outputs: VaR at 95%/99%/99.9%, Expected Shortfall at 97.5%/99%, full loss distribution histogram, and worst tail contributors by name
 
-This directly maps to **ICAAP capital estimation** requirements under Basel Pillar 2, where banks must demonstrate internal capital adequacy through their own scenario-based loss models.
+This maps directly to **ICAAP capital estimation** under Basel Pillar 2, where banks must demonstrate internal capital adequacy through their own scenario-based loss models.
 
 ### Concentration & Correlation Risk
-- **HHI (Herfindahl-Hirschman Index):** Sector and single-name concentration measurement
-- **Sector Default Correlation Matrix:** 10×10 cross-sector correlation coefficients calibrated from Basel asset-correlation literature (e.g., Real Estate ↔ Financials: 0.55; Technology ↔ Healthcare: 0.25)
-- Diversification benefit calculation: how much the portfolio's systemic risk is reduced by cross-sector spread
-- Visual heatmap of sector-pair correlations
+- **HHI (Herfindahl-Hirschman Index)** — sector and single-name concentration
+- **Sector Default Correlation Matrix** — 10×10 cross-sector coefficients calibrated from Basel asset-correlation literature (e.g., Real Estate ↔ Financials: 0.55; Technology ↔ Healthcare: 0.25)
+- Diversification benefit calculation and a visual heatmap of sector-pair correlations
 
 ### Risk Rating & Segmentation
-- 10-grade internal rating ladder (AAA → D) mapped to S&P-style anchor PDs
-- Portfolio treemap: EAD visualized by grade and borrower name
-- Grade migration table: observed vs. anchor PD by grade with EAD share
-- Investment / Speculative / Distressed band segmentation
+10-grade internal rating ladder (AAA → D) mapped to S&P-style anchor PDs, a portfolio treemap by grade and borrower, grade migration table (observed vs. anchor PD, EAD share), and Investment/Speculative/Distressed band segmentation.
 
 ### Explainable AI (SHAP-style Attribution)
-- **Local explainability:** For any individual borrower, waterfall chart showing the signed contribution of each of the 8 score factors relative to a baseline - equivalent to SHAP values
-- **Global explainability:** Portfolio-wide factor importance ranking - which drivers are most responsible for overall portfolio credit risk
-- **Driver Impact Drill-down:** For any selected driver (e.g. "Leverage"), rank all borrowers by their contribution to that driver
-- This directly addresses **SR 11-7 / model explainability** requirements that regulators impose on banks using internal scoring models
+- **Local:** per-borrower waterfall chart showing the signed contribution of each of the 8 score factors relative to a baseline — equivalent to SHAP values
+- **Global:** portfolio-wide factor importance ranking
+- **Driver drill-down:** rank all borrowers by their contribution to any selected driver (e.g. "Leverage")
+
+Directly addresses **SR 11-7 / model explainability** requirements regulators impose on banks using internal scoring models.
 
 ### Early Warning System
-Algorithmic triggers flagging at-risk borrowers before formal default:
-- Covenant breach signals (Debt/EBITDA > threshold, coverage < floor)
-- Revolving utilization spike detection
-- DPD trend deterioration (30-day and 90-day past due counts)
-- PIT/TTC ratio divergence (macro-adjusted PD running far above grade anchor)
-- Severity ranking: Critical / High / Medium with color-coded alerts
+Algorithmic triggers flagging at-risk borrowers before formal default: covenant breach signals, revolving utilization spikes, DPD trend deterioration (30/90-day past due), and PIT/TTC ratio divergence — with Critical/High/Medium severity ranking and color-coded alerts.
 
 ### Borrower Profiles
-Full per-borrower drill-through: financial ratios, behavioral metrics, facility details (type, seniority, tenor, collateral), scoring breakdown, risk grade, EL contribution, and SHAP attribution - everything a relationship manager needs for credit committee presentation.
+Full per-borrower drill-through — financial ratios, behavioral metrics, facility details (type, seniority, tenor, collateral), scoring breakdown, risk grade, EL contribution, and SHAP attribution — everything needed for a credit committee presentation.
 
 ### AI Analyst (Claude-powered)
-- Floating chat interface backed by Claude AI with full portfolio context injected (total exposure, EL, sector breakdown, grade band distribution, top-5 riskiest borrowers)
-- Pre-built prompts: "Summarize the biggest risks", "Which sectors are over-concentrated?", "Recommend 3 actions to reduce expected loss"
-- Natural language Q&A over live portfolio data - no SQL, no pivot tables
-
----
-
-## Architecture
-
-```
-src/
-├── lib/
-│   ├── risk-models.ts          # Core quant: PD, LGD, EAD, EL, scoring, SHAP
-│   ├── credit-analytics.ts     # TTC/PIT, migration matrix, Monte Carlo, early warnings
-│   ├── assessment-data.ts      # Portfolio state management
-│   └── ai.functions.ts         # Claude API server function
-├── routes/
-│   ├── index.tsx               # Executive Overview dashboard
-│   ├── scoring.tsx             # Credit Scoring Engine
-│   ├── pd.tsx                  # PD · TTC vs PIT · Migration Matrix
-│   ├── lgd.tsx                 # Loss Given Default
-│   ├── expected-loss.tsx       # EL · Monte Carlo Simulation
-│   ├── concentration.tsx       # Concentration & Correlation Risk
-│   ├── ratings.tsx             # Risk Rating & Segmentation
-│   ├── explainability.tsx      # SHAP Attribution
-│   ├── borrowers.tsx           # Borrower Directory
-│   └── borrowers.$id.tsx       # Individual Borrower Profile
-├── components/
-│   ├── ai-analyst-bubble.tsx   # Floating AI chat with portfolio context
-│   ├── app-sidebar.tsx         # Navigation
-│   └── ...
-└── integrations/
-    └── supabase/               # Auth + persistent assessment storage
-```
+Floating chat interface with full portfolio context injected — total exposure, EL, sector breakdown, grade distribution, top-5 riskiest borrowers. Pre-built prompts like *"Summarize the biggest risks"* or *"Recommend 3 actions to reduce expected loss"*, plus open natural-language Q&A over live portfolio data.
 
 ---
 
@@ -170,15 +174,56 @@ src/
 
 ---
 
+## Architecture
+
+```
+src/
+├── lib/
+│   ├── risk-models.ts          # Core quant: PD, LGD, EAD, EL, scoring, SHAP
+│   ├── credit-analytics.ts     # TTC/PIT, migration matrix, Monte Carlo, early warnings
+│   ├── assessment-data.ts      # CSV parsing, column auto-mapping, seed data generation
+│   ├── portfolio-context.tsx   # Active-assessment state shared across all modules
+│   └── ai.functions.ts         # Claude API server function
+├── routes/
+│   ├── auth.tsx                 # Sign in / sign up (email + Google OAuth)
+│   ├── assessments.tsx          # Assessment history — reopen or delete past runs
+│   ├── assessments.new.tsx      # Create assessment — seed portfolio or CSV upload
+│   ├── index.tsx                 # Executive Overview dashboard
+│   ├── scoring.tsx               # Credit Scoring Engine
+│   ├── pd.tsx                    # PD · TTC vs PIT · Migration Matrix
+│   ├── lgd.tsx                   # Loss Given Default
+│   ├── expected-loss.tsx         # EL · Monte Carlo Simulation
+│   ├── concentration.tsx         # Concentration & Correlation Risk
+│   ├── ratings.tsx               # Risk Rating & Segmentation
+│   ├── explainability.tsx        # SHAP Attribution
+│   ├── borrowers.tsx             # Borrower Directory
+│   └── borrowers.$id.tsx         # Individual Borrower Profile
+├── components/
+│   ├── ai-analyst-bubble.tsx    # Floating AI chat with portfolio context
+│   ├── app-sidebar.tsx           # Navigation
+│   ├── topbar.tsx / panel.tsx / metric-card.tsx / rating-badge.tsx
+│   └── ui/                       # shadcn/ui primitives
+└── integrations/
+    ├── supabase/                 # Auth client, middleware, generated DB types
+    └── lovable/                  # OAuth helper
+```
+
+## Data Model
+
+Supabase-backed with Row-Level Security throughout — every table is scoped so users only see their own data.
+
+- **`assessments`** — one row per risk run (name, description, created_at); the container for a portfolio snapshot
+- **`borrower_records`** — individual borrowers linked to an assessment, holding financials, facility details, and scoring inputs
+
 ## Getting Started
 
 ```bash
 # Clone
-git clone https://github.com/your-username/creditrisk-pro
-cd creditrisk-pro
+git clone https://github.com/analystibpateladesh/CreditRisk.git
+cd CreditRisk
 
 # Install
-bun install   # or npm install
+npm install    # or bun install
 
 # Environment
 cp .env.example .env
@@ -188,23 +233,26 @@ cp .env.example .env
 supabase db push
 
 # Start dev server
-bun run dev
+npm run dev
 ```
 
----
+```bash
+npm run build       # production build
+npm run preview     # preview the build
+npm run lint         # eslint
+npm run format       # prettier
+```
 
 ## Regulatory Context
 
 CreditRisk Pro implements concepts directly relevant to:
 
-- **Basel II/III/IV (BCBS)** - IRB PD/LGD/EAD/EL framework, capital adequacy
-- **IFRS 9** - Point-in-Time PD for expected credit loss provisioning
-- **RBI Master Directions (India)** - NBFC and bank credit risk management guidelines
-- **SR 11-7 (Federal Reserve)** - Model risk management and explainability requirements
-- **ICAAP / Pillar 2** - Internal capital adequacy using scenario-based loss models
-
----
+- **Basel II/III/IV (BCBS)** — IRB PD/LGD/EAD/EL framework, capital adequacy
+- **IFRS 9** — Point-in-Time PD for expected credit loss provisioning
+- **RBI Master Directions (India)** — NBFC and bank credit risk management guidelines
+- **SR 11-7 (Federal Reserve)** — model risk management and explainability requirements
+- **ICAAP / Pillar 2** — internal capital adequacy using scenario-based loss models
 
 ## License
 
-MIT - built for learning, portfolio demonstration, and as a foundation for production credit risk tooling.
+MIT — built for learning, portfolio demonstration, and as a foundation for production credit risk tooling.
