@@ -7,7 +7,7 @@
 
 ---
 
-## The Problem This Solves
+## The Problem this Solves
 
 Every bank, NBFC, insurance company, and asset manager faces the same fundamental challenge: **how do you measure, monitor, and manage the risk that your borrowers won't repay?**
 
