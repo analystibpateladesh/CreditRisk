@@ -12,6 +12,7 @@ export const askAi = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const key = process.env.GEMINI_API_KEY;
     if (!key) throw new Error("AI is not configured (missing GEMINI_API_KEY).");
+    const model = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
 
     const system =
       data.system ??
@@ -25,7 +26,7 @@ export const askAi = createServerFn({ method: "POST" })
     };
 
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(key)}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`,
       {
         method: "POST",
         headers: { "content-type": "application/json" },

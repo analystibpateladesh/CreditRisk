@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/use-auth";
 import { ShieldCheck, Loader2 } from "lucide-react";
 
@@ -51,10 +50,18 @@ function AuthPage() {
   const google = async () => {
     setError(null); setBusy(true);
     try {
-      const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-      if (r.error) setError(r.error.message ?? "Google sign-in failed");
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth`,
+        },
+      });
+      if (error) throw error;
     } catch (e: any) {
-      setError(e?.message ?? "Google sign-in failed");
+      const msg = e?.message ?? "Google sign-in failed";
+      setError(/failed to fetch/i.test(msg)
+        ? "Network blocked in this preview. Open the Published URL (top-right Publish) and try again — auth works there."
+        : msg);
     } finally { setBusy(false); }
   };
 
