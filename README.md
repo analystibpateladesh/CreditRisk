@@ -80,7 +80,7 @@ Once an assessment is active, it loads into every module: the Executive Overview
 </details>
 
 <details>
-<summary><strong>4. Ask the AI Analyst</strong> — Claude-powered, portfolio-aware chat</summary>
+<summary><strong>4. Ask the AI Analyst</strong> — AI-powered, portfolio-aware chat</summary>
 
 A floating chat bubble is available throughout the app, pre-loaded with live context from your active portfolio (total exposure, EL, sector breakdown, grade distribution, top-5 riskiest borrowers). Use the pre-built prompts or ask anything in natural language — no SQL, no pivot tables.
 </details>
@@ -152,7 +152,7 @@ Algorithmic triggers flagging at-risk borrowers before formal default: covenant 
 ### Borrower Profiles
 Full per-borrower drill-through — financial ratios, behavioral metrics, facility details (type, seniority, tenor, collateral), scoring breakdown, risk grade, EL contribution, and SHAP attribution — everything needed for a credit committee presentation.
 
-### AI Analyst (Claude-powered)
+### AI Analyst (YOUR API KEY-powered)
 Floating chat interface with full portfolio context injected — total exposure, EL, sector breakdown, grade distribution, top-5 riskiest borrowers. Pre-built prompts like *"Summarize the biggest risks"* or *"Recommend 3 actions to reduce expected loss"*, plus open natural-language Q&A over live portfolio data.
 
 ---
